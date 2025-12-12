@@ -1,5 +1,8 @@
 # saap-text-analyzer
 
+## Link zum Repository
+[GitHub Repository](https://github.com/clemens2001/saap-text-analyzer)
+
 ## 1. Use Case Description
 The goal was to build a "Text Analyzer" application that processes a raw text file through several distinct steps: reading the file, sanitizing the text (removing punctuation/formatting), and analyzing the content (counting words and characters).
 
