@@ -1,5 +1,28 @@
 ﻿using System.Text.RegularExpressions;
 
+class Program
+{
+    static void Main(string[] args)
+    {
+        var path = args.Length > 0 ? args[0] : "input1.txt";
+
+        // Instantiate concretes
+        var fileReader = new FileReader();
+
+        // Pass dependencies as interfaces into constructors; constructors register the events
+        ITextSanitizer sanitizer = new TextSanitizer(fileReader);
+        IWordCounter wordCounter = new WordCounter(sanitizer);
+        ICharCounter charCounter = new CharCounter(sanitizer);
+
+        // Aggregator subscribes in ctor to the counters
+        var aggregator = new ResultAggregator(wordCounter, charCounter);
+
+        Console.WriteLine("Starting event-driven processing (constructor DI)...");
+        fileReader.Read(path);
+    }
+}
+
+
 // --- Event arg types ---
 public class RawTextEventArgs : EventArgs
 {
@@ -154,28 +177,5 @@ public class ResultAggregator
             Console.WriteLine($"Final Result: {_words.Value} words, {_chars.Value} characters.");
             _words = _chars = null;
         }
-    }
-}
-
-// --- Composition root: instantiate in Main and pass dependencies via constructor DI ---
-class Program
-{
-    static void Main(string[] args)
-    {
-        var path = args.Length > 0 ? args[0] : "input1.txt";
-
-        // Instantiate concretes
-        var fileReader = new FileReader();
-
-        // Pass dependencies as interfaces into constructors; constructors register the events
-        ITextSanitizer sanitizer = new TextSanitizer(fileReader);
-        IWordCounter wordCounter = new WordCounter(sanitizer);
-        ICharCounter charCounter = new CharCounter(sanitizer);
-
-        // Aggregator subscribes in ctor to the counters
-        var aggregator = new ResultAggregator(wordCounter, charCounter);
-
-        Console.WriteLine("Starting event-driven processing (constructor DI)...");
-        fileReader.Read(path);
     }
 }
