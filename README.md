@@ -48,6 +48,35 @@ We implemented a **Broker Topology** where components generate events (e.g., `Te
 * **Complexity & Flow:** The control flow is inverted. You cannot look at `Main` and see exactly what happens in what order; you have to trace the event subscriptions to understand the system.
 * **Debugging:** Tracing a bug is harder because the stack trace is often broken up by event invocations, and there is no single "script" of execution.
 
+### Diagram
+
+
+```mermaid
+graph LR
+  %% composition root / DI
+  Main[Main]
+
+  %% components
+  FR[FileReader]
+  TS[TextSanitizer]
+  WC[WordCounter]
+  CC[CharCounter]
+  AG[ResultAggregator]
+
+  %% DI / constructor injection
+  Main --> FR
+
+  %% event flows
+  FR -.->|RawTextRead| TS
+  TS -.->|TextSanitized| WC
+  TS -.->|TextSanitized| CC
+  WC -.->|WordCounted| AG
+  CC -.->|CharCounted| AG
+
+  %% output
+  AG -->|prints| Out[(Console)]
+```
+
 ---
 
 ## 4. Final Comparison & Conclusion
