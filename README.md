@@ -10,7 +10,7 @@ The goal was to build a "Text Analyzer" application that processes a raw text fi
 ## 2. Pattern A: Pipes and Filters
 We selected the **Pipes and Filters** architectural pattern. This pattern decomposes the task into self-contained processing steps (Filters) connected by a standard data transfer mechanism (Pipes).
 
-### Structure:
+### Structure
 * **`IFilter<TInput, TOutput>`:** A generic interface enforcing a standard contract for all components.
 * **`Pipeline` Class:** An orchestrator responsible for chaining filters together. It encapsulates the flow control, allowing `Main` to focus on configuration rather than execution.
 * **Concrete Filters:** `FileReadFilter`, `TextSanitizerFilter`, `WordCountFilter`.
@@ -26,12 +26,34 @@ We selected the **Pipes and Filters** architectural pattern. This pattern decomp
 * **Linear Data Dependency (The "Context" Problem):** In a strict linear pipeline (`A` $\rightarrow$ `B` $\rightarrow$ `C`), Filter `C` depends entirely on `B`'s output. We wanted to count *Words* (int) and *Chars* (int) from the same *Sanitized Text* (string). Once the data transformed into an `int`, the original string was lost to the next filter.
 * **Flexibility:** Dealing with "branching" logic (one output feeding two inputs) required awkward workarounds like splitting the pipeline manually.
 
+### Diagram
+```mermaid
+graph LR
+  Main[Main]
+  FR[FileReadFilter]
+  PB[Pipeline Builder]
+  TS[TextSanitizerFilter]
+  WC[WordCountFilter]
+  Out[(Console)]
+
+  Main -->|creates Pipeline| PB
+
+  %% pipeline construction (visual)
+  PB -->|start with FileReadFilter.Process| FR
+
+  WC -->|final output| Out
+
+  %% data flow at runtime
+  FR -.->|Process file path| TS
+  TS -.->|Process sanitized text| WC
+```
+
 ---
 
 ## 3. Pattern B: Event-Driven Architecture (Broker Topology)
 We implemented a **Broker Topology** where components generate events (e.g., `TextSanitized`) and other components listen for them. There is no central orchestrator forcing the flow; the flow emerges from the subscriptions.
 
-### Structure:
+### Structure
 * **Events (`EventArgs`):** Custom classes like `SanitizedTextEventArgs` carry the payload between components.
 * **Publishers & Subscribers:** Components like `TextSanitizer` expose C# `EventHandler` delegates. `WordCounter` and `CharCounter` subscribe to these events via constructor injection.
 * **Aggregator:** A `ResultAggregator` listens to multiple analysis events and combines the results when ready.
